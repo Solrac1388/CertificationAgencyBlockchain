@@ -13,6 +13,7 @@ CertificationAgencyBlockchain is a decentralized system for certifying the ident
 - RSA key generator
 - Sending encrypted key files via email
 - Communication with blockchain nodes
+- Loading and deletion of existing certificates
 
 ### Blockchain Nodes
 - Processing certification requests
@@ -46,6 +47,11 @@ CertificationAgencyBlockchain is a decentralized system for certifying the ident
 5. **Queries**:
    - Users can query the identity associated with a public key
    - Users can query the public key associated with an identity
+
+6. **Certificate Management**:
+   - Users can load existing certificates into the application
+   - Users can delete certificates they no longer need
+   - The application synchronizes these changes with the blockchain network
 
 ## Technical Architecture
 

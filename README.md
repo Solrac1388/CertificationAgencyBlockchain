@@ -13,6 +13,7 @@ CertificationAgencyBlockchain es un sistema descentralizado para certificar la i
 - Generador de claves RSA
 - Envío de archivos de claves cifrados por email
 - Comunicación con los nodos de la blockchain
+- Carga y eliminación de certificados existentes
 
 ### Nodos Blockchain
 - Procesamiento de solicitudes de certificación
@@ -46,6 +47,11 @@ CertificationAgencyBlockchain es un sistema descentralizado para certificar la i
 5. **Consultas**:
    - Los usuarios pueden consultar la identidad asociada a una clave pública
    - Los usuarios pueden consultar la clave pública asociada a una identidad
+
+6. **Gestión de Certificados**:
+   - Los usuarios pueden cargar certificados existentes a la aplicación
+   - Los usuarios pueden eliminar certificados que ya no necesiten
+   - La aplicación sincroniza estos cambios con la red blockchain
 
 ## Arquitectura Técnica
 
