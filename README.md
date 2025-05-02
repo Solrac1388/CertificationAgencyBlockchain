@@ -11,9 +11,10 @@ CertificationAgencyBlockchain es un sistema descentralizado para certificar la i
 ### App Móvil
 - Interfaz de usuario para Persona Verification
 - Generador de claves RSA
+- Almacenamiento local de certificados en el dispositivo
 - Envío de archivos de claves cifrados por email
 - Comunicación con los nodos de la blockchain
-- Carga y eliminación de certificados existentes
+- Gestión de certificados (carga desde el dispositivo y eliminación local)
 
 ### Nodos Blockchain
 - Procesamiento de solicitudes de certificación
@@ -32,6 +33,7 @@ CertificationAgencyBlockchain es un sistema descentralizado para certificar la i
 2. **Generación de Claves**:
    - La app genera un par de claves RSA
    - El par de claves se cifra con una contraseña proporcionada por el usuario
+   - Las claves se almacenan localmente en el dispositivo
    - El archivo cifrado se envía al email del usuario
 
 3. **Solicitud de Certificación**:
@@ -49,9 +51,10 @@ CertificationAgencyBlockchain es un sistema descentralizado para certificar la i
    - Los usuarios pueden consultar la clave pública asociada a una identidad
 
 6. **Gestión de Certificados**:
-   - Los usuarios pueden cargar certificados existentes a la aplicación
-   - Los usuarios pueden eliminar certificados que ya no necesiten
-   - La aplicación sincroniza estos cambios con la red blockchain
+   - Los usuarios pueden gestionar certificados almacenados localmente en el dispositivo
+   - Es posible importar certificados existentes desde el almacenamiento del dispositivo
+   - Los certificados pueden ser eliminados de la aplicación en cualquier momento
+   - Para añadir un nuevo certificado a la red blockchain, se requiere realizar una nueva verificación de identidad para cada certificado
 
 ## Arquitectura Técnica
 

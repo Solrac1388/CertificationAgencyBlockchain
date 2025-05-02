@@ -11,9 +11,10 @@ CertificationAgencyBlockchain is a decentralized system for certifying the ident
 ### Mobile App
 - User interface for Persona Verification
 - RSA key generator
+- Local storage of certificates on the device
 - Sending encrypted key files via email
 - Communication with blockchain nodes
-- Loading and deletion of existing certificates
+- Certificate management (loading from device and local deletion)
 
 ### Blockchain Nodes
 - Processing certification requests
@@ -32,6 +33,7 @@ CertificationAgencyBlockchain is a decentralized system for certifying the ident
 2. **Key Generation**:
    - The app generates an RSA key pair
    - The key pair is encrypted with a password provided by the user
+   - The keys are stored locally on the device
    - The encrypted file is sent to the user's email
 
 3. **Certification Request**:
@@ -49,9 +51,10 @@ CertificationAgencyBlockchain is a decentralized system for certifying the ident
    - Users can query the public key associated with an identity
 
 6. **Certificate Management**:
-   - Users can load existing certificates into the application
-   - Users can delete certificates they no longer need
-   - The application synchronizes these changes with the blockchain network
+   - Users can manage certificates stored locally on the device
+   - It's possible to import existing certificates from the device storage
+   - Certificates can be deleted from the application at any time
+   - To add a new certificate to the blockchain network, a new identity verification is required for each certificate
 
 ## Technical Architecture
 
