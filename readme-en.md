@@ -1,6 +1,6 @@
 # CertificationAgencyBlockchain
 
-🇪🇸 [Ver en Español](README.md) | 🇬🇧 [View in English](README.en.md)
+🇪🇸 [Ver en Español](README.md) | 🇬🇧 [View in English](README-EN.md)
 
 ## Description
 
