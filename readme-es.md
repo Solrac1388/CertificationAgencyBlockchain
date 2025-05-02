@@ -1,5 +1,7 @@
 # CertificationAgencyBlockchain
 
+🇪🇸 [Ver en Español](README.md) | 🇬🇧 [View in English](README.en.md)
+
 ## Descripción
 
 CertificationAgencyBlockchain es un sistema descentralizado para certificar la identidad de los propietarios de claves públicas usando tecnología blockchain con prueba de trabajo. El sistema utiliza la API de Persona Verification para verificar la identidad de los usuarios y asociarla a sus claves públicas, creando así un sistema confiable de certificación de identidades digitales.
