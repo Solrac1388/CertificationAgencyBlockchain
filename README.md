@@ -60,7 +60,7 @@ CertificationAgencyBlockchain es un sistema descentralizado para certificar la i
 
 ### Estructura de la Blockchain
 - Bloques enlazados mediante hashes
-- Prueba de trabajo para la validación de bloques
+- Prueba de trabajo para la validación de bloques con ajuste de dificultad
 - Mecanismo de consenso distribuido
 
 ### Integración con Persona API

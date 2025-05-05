@@ -60,7 +60,7 @@ CertificationAgencyBlockchain is a decentralized system for certifying the ident
 
 ### Blockchain Structure
 - Blocks linked through hashes
-- Proof of work for block validation
+- Proof of work for block validation with difficulty adjustment
 - Distributed consensus mechanism
 
 ### Integration with Persona API
