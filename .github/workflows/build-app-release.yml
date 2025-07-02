@@ -1,0 +1,304 @@
+name: Build and Release Blockchain App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'nodes_ip.txt'
+      - '.github/workflows/build-app-release.yml'
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'New version with improvements and bug fixes'
+
+jobs:
+  build-apk:
+    name: Build APK
+    runs-on: ubuntu-latest
+    
+    env:
+      PERSONA_TEMPLATE_ID: ${{ secrets.PERSONA_TEMPLATE_ID }}
+      PERSONA_ENVIRONMENT_ID: ${{ secrets.PERSONA_ENVIRONMENT_ID }}
+      ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+    
+    outputs:
+      apk-path: ${{ steps.build.outputs.apk-path }}
+      version-name: ${{ steps.version.outputs.version-name }}
+      nodes-count: ${{ steps.nodes.outputs.nodes-count }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: 'app/package-lock.json'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      
+    - name: Calculate version
+      id: version
+      run: |
+        VERSION_CODE=${{ github.run_number }}
+        VERSION_NAME="1.0.${{ github.run_number }}"
+        echo "version-code=$VERSION_CODE" >> $GITHUB_OUTPUT
+        echo "version-name=$VERSION_NAME" >> $GITHUB_OUTPUT
+        echo "Version: $VERSION_NAME (code: $VERSION_CODE)"
+        
+    - name: Process nodes file
+      id: nodes
+      run: |
+        echo "Processing nodes_ip.txt file..."
+        
+        if [[ ! -f "nodes_ip.txt" ]]; then
+          echo "ERROR: nodes_ip.txt file not found in repository root"
+          exit 1
+        fi
+        
+        NODES_RAW=$(grep -v '^#' nodes_ip.txt | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+        
+        if [[ -z "$NODES_RAW" ]]; then
+          echo "ERROR: No valid nodes found in nodes_ip.txt"
+          exit 1
+        fi
+        
+        NODES_ARRAY="[$(echo "$NODES_RAW" | sed "s/\([^,]*\)/'\1'/g")]"
+        NODES_COUNT=$(echo "$NODES_RAW" | tr ',' '\n' | wc -l)
+        
+        echo "nodes-array=$NODES_ARRAY" >> $GITHUB_OUTPUT
+        echo "nodes-count=$NODES_COUNT" >> $GITHUB_OUTPUT
+        echo "nodes-raw=$NODES_RAW" >> $GITHUB_OUTPUT
+        
+        echo "Processed $NODES_COUNT nodes:"
+        echo "$NODES_RAW" | tr ',' '\n' | sed 's/^/  - /'
+        
+    - name: Install dependencies
+      run: |
+        cd app
+        npm ci
+        echo "Dependencies installed"
+        
+    - name: Configure Persona credentials
+      run: |
+        cd app/src/config
+        echo "Configuring Persona credentials..."
+        
+        if [[ -z "$PERSONA_TEMPLATE_ID" ]]; then
+          echo "ERROR: PERSONA_TEMPLATE_ID not configured"
+          exit 1
+        fi
+        
+        if [[ -z "$PERSONA_ENVIRONMENT_ID" ]]; then
+          echo "ERROR: PERSONA_ENVIRONMENT_ID not configured"
+          exit 1
+        fi
+        
+        sed -i "s/itmpl_XXXXXXXXXXXXXXXXXXXXXX/$PERSONA_TEMPLATE_ID/g" network.js
+        sed -i "s/env_XXXXXXXXXXXXXXXXXX/$PERSONA_ENVIRONMENT_ID/g" network.js
+        
+        echo "Persona credentials configured"
+        
+    - name: Configure network nodes
+      run: |
+        cd app/src/config
+        echo "Configuring network nodes..."
+        
+        sed -i "s/TRUSTED_NODES_PLACEHOLDER/${{ steps.nodes.outputs.nodes-array }}/g" network.js
+        
+        if grep -q "TRUSTED_NODES_PLACEHOLDER" network.js; then
+          echo "ERROR: Failed to replace nodes placeholder"
+          exit 1
+        fi
+        
+        echo "Configured ${{ steps.nodes.outputs.nodes-count }} trusted nodes"
+        echo "Configured nodes:"
+        grep -A 1 "trustedNodes:" network.js | head -2
+        
+    - name: Configure Android signing key
+      run: |
+        cd app/android
+        echo "Configuring signing key..."
+        
+        if [[ -z "$ANDROID_SIGNING_KEY_BASE64" ]]; then
+          echo "ERROR: ANDROID_SIGNING_KEY_BASE64 not configured"
+          exit 1
+        fi
+        
+        echo "$ANDROID_SIGNING_KEY_BASE64" | base64 -d > app/blockchain-release-key.keystore
+        
+        if [[ ! -f "app/blockchain-release-key.keystore" ]]; then
+          echo "ERROR: Could not create keystore"
+          exit 1
+        fi
+        
+        echo "Keystore configured successfully"
+        
+    - name: Update Android version
+      run: |
+        cd app/android/app
+        echo "Updating build.gradle version..."
+        
+        sed -i "s/versionCode 1/versionCode ${{ steps.version.outputs.version-code }}/g" build.gradle
+        sed -i "s/versionName \"1.0\"/versionName \"${{ steps.version.outputs.version-name }}\"/g" build.gradle
+        
+        echo "Version updated to ${{ steps.version.outputs.version-name }}"
+        
+    - name: Build release APK
+      id: build
+      run: |
+        cd app/android
+        chmod +x ./gradlew
+        
+        echo "Starting APK build..."
+        
+        ./gradlew assembleRelease \
+          -Pandroid.injected.signing.store.file=app/blockchain-release-key.keystore \
+          -Pandroid.injected.signing.store.password="$ANDROID_STORE_PASSWORD" \
+          -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
+          -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD" \
+          --no-daemon
+          
+        APK_PATH="app/build/outputs/apk/release/app-release.apk"
+        if [[ ! -f "$APK_PATH" ]]; then
+          echo "ERROR: APK was not generated"
+          exit 1
+        fi
+        
+        NEW_APK_NAME="blockchain-app-v${{ steps.version.outputs.version-name }}.apk"
+        mv "$APK_PATH" "app/build/outputs/apk/release/$NEW_APK_NAME"
+        
+        echo "apk-path=app/android/app/build/outputs/apk/release/$NEW_APK_NAME" >> $GITHUB_OUTPUT
+        echo "APK built: $NEW_APK_NAME"
+        
+        ls -lh "app/build/outputs/apk/release/$NEW_APK_NAME"
+        
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: blockchain-app-v${{ steps.version.outputs.version-name }}
+        path: app/android/app/build/outputs/apk/release/*.apk
+        retention-days: 90
+        
+  create-release:
+    name: Create Release
+    needs: build-apk
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Checkout for nodes file
+      uses: actions/checkout@v4
+      
+    - name: Download built APK
+      uses: actions/download-artifact@v4
+      with:
+        name: blockchain-app-v${{ needs.build-apk.outputs.version-name }}
+        path: ./release-assets
+        
+    - name: Generate nodes list for release
+      id: nodes_list
+      run: |
+        echo "Generating nodes list for release documentation..."
+        
+        NODES_LIST=""
+        while IFS= read -r line; do
+          if [[ ! "$line" =~ ^#.* ]] && [[ ! -z "$line" ]]; then
+            NODES_LIST+="          - $line"$'\n'
+          fi
+        done < nodes_ip.txt
+        
+        echo "nodes-list<<EOF" >> $GITHUB_OUTPUT
+        echo "$NODES_LIST" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: app-v${{ needs.build-apk.outputs.version-name }}
+        release_name: Blockchain App v${{ needs.build-apk.outputs.version-name }}
+        body: |
+          # New Blockchain App Version
+          
+          **Version:** v${{ needs.build-apk.outputs.version-name }}
+          **Date:** ${{ github.event.head_commit.timestamp }}
+          **Commit:** ${{ github.sha }}
+          **Configured nodes:** ${{ needs.build-apk.outputs.nodes-count }}
+          
+          ## Features included:
+          
+          - Identity verification with Persona API
+          - RSA certificate generation (4096 bits)
+          - Blockchain network communication via UDP and HTTP
+          - Secure key management with AES-256 encryption
+          - Local storage with encrypted SQLite
+          - Digital document signature verification
+          - Automatic network node discovery
+          - Material Design interface
+          
+          ## Configured network nodes:
+          
+          This version comes pre-configured with ${{ needs.build-apk.outputs.nodes-count }} trusted nodes:
+          
+          ${{ steps.nodes_list.outputs.nodes-list }}
+          
+          ## Installation:
+          
+          1. Download `blockchain-app-v${{ needs.build-apk.outputs.version-name }}.apk`
+          2. Enable "Unknown sources" on your Android device
+          3. Install the APK
+          4. Ready to use
+          
+          ## Initial setup:
+          
+          1. **Pre-configured nodes:** This version already includes network nodes
+          2. **Identity verification:** The app will guide you through the Persona process
+          3. **Certificates:** Generate your first certificate from the main screen
+          
+          ## Bug reports:
+          
+          If you encounter any issues, please create an issue with:
+          - Device model
+          - Android version
+          - Steps to reproduce the problem
+          
+          **Additional notes:** ${{ github.event.inputs.release_notes || 'Stability improvements and new features.' }}
+        draft: false
+        prerelease: false
+        
+    - name: Upload APK to release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release-assets/blockchain-app-v${{ needs.build-apk.outputs.version-name }}.apk
+        asset_name: blockchain-app-v${{ needs.build-apk.outputs.version-name }}.apk
+        asset_content_type: application/vnd.android.package-archive
+        
+    - name: Build summary
+      run: |
+        echo "Release created successfully"
+        echo "APK: blockchain-app-v${{ needs.build-apk.outputs.version-name }}.apk"
+        echo "Configured nodes: ${{ needs.build-apk.outputs.nodes-count }}"
+        echo "Release URL: ${{ steps.create_release.outputs.html_url }}"
