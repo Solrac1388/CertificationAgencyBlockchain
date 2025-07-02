@@ -1,0 +1,22 @@
+# Nodos de confianza para la red blockchain
+# Formato: ip:port o dominio:port
+# Líneas que empiecen con # son comentarios
+
+# Nodos principales
+192.168.1.100:8333
+192.168.1.101:8333
+
+# Nodos de respaldo
+10.0.0.50:8333
+10.0.0.51:8333
+
+# Nodos con dominio
+node1.blockchain.local:8333
+node2.blockchain.local:8333
+
+# Nodos adicionales
+172.16.0.10:8333
+172.16.0.11:8333
+
+# Puedes añadir más nodos aquí
+# nuevo-nodo.example.com:8333
