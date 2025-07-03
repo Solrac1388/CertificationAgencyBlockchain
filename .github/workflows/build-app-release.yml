@@ -22,7 +22,7 @@ jobs:
     env:
       PERSONA_TEMPLATE_ID: ${{ secrets.PERSONA_TEMPLATE_ID }}
       PERSONA_ENVIRONMENT_ID: ${{ secrets.PERSONA_ENVIRONMENT_ID }}
-      ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+      ANDROID_SIGNING_KEY_HEX: ${{ secrets.ANDROID_SIGNING_KEY_HEX }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
@@ -137,12 +137,12 @@ jobs:
         cd app/android
         echo "Configuring signing key..."
         
-        if [[ -z "$ANDROID_SIGNING_KEY_BASE64" ]]; then
-          echo "ERROR: ANDROID_SIGNING_KEY_BASE64 not configured"
+        if [[ -z "$ANDROID_SIGNING_KEY_HEX" ]]; then
+          echo "ERROR: ANDROID_SIGNING_KEY_HEX not configured"
           exit 1
         fi
         
-        echo "$ANDROID_SIGNING_KEY_BASE64" | base64 -d > app/blockchain-release-key.keystore
+        echo "$ANDROID_SIGNING_KEY_HEX" | xxd -r -p > app/blockchain-release-key.keystore
         
         if [[ ! -f "app/blockchain-release-key.keystore" ]]; then
           echo "ERROR: Could not create keystore"
