@@ -43,7 +43,6 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: 'app/package-lock.json'
         
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -93,7 +92,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd app
-        npm ci
+        npm install
         echo "Dependencies installed"
         
     - name: Configure Persona credentials
