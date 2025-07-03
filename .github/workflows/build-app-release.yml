@@ -165,11 +165,10 @@ jobs:
       id: build
       run: |
         cd app/android
-        chmod +x ./gradlew
         
         echo "Starting APK build..."
         
-        ./gradlew assembleRelease \
+        gradle assembleRelease \
           -Pandroid.injected.signing.store.file=app/blockchain-release-key.keystore \
           -Pandroid.injected.signing.store.password="$ANDROID_STORE_PASSWORD" \
           -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
