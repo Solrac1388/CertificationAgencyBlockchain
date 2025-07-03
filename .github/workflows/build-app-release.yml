@@ -43,6 +43,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        cache-dependency-path: 'app/package-lock.json'  # Especifica la ruta del archivo de lock
         
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -110,8 +111,8 @@ jobs:
           exit 1
         fi
         
-        sed -i "s/itmpl_XXXXXXXXXXXXXXXXXXXXXX/$PERSONA_TEMPLATE_ID/g" network.js
-        sed -i "s/env_XXXXXXXXXXXXXXXXXX/$PERSONA_ENVIRONMENT_ID/g" network.js
+        sed -i "s/itmpl_ABC123XYZ789DEF456GHI/$PERSONA_TEMPLATE_ID/g" network.js
+        sed -i "s/env_PROD123456789ABCDEF/$PERSONA_ENVIRONMENT_ID/g" network.js
         
         echo "Persona credentials configured"
         
