@@ -94,29 +94,7 @@ jobs:
       run: |
         cd app
         echo "Fixing configuration for Android build..."
-        
-        # Fix react-native.config.js - remove iOS config
-        cat > react-native.config.js << 'EOF'
-module.exports = {
-  assets: ['./src/assets/fonts/', './src/assets/images/'],
-};
-EOF
-
-        # Fix Android namespace and package
-        cd android/app
-        sed -i 's/namespace "com.blockchaintclient"/namespace "com.blockchainagency.certification"/g' build.gradle
-        sed -i 's/applicationId "com.blockchaintclient"/applicationId "com.blockchainagency.certification"/g' build.gradle
-        
-        # Fix Java package structure
-        mkdir -p src/main/java/com/blockchainagency/certification/
-        if [ -d "src/main/java/com/blockchaintclient/" ]; then
-          mv src/main/java/com/blockchaintclient/* src/main/java/com/blockchainagency/certification/ 2>/dev/null || true
-          rmdir src/main/java/com/blockchaintclient/ 2>/dev/null || true
-        fi
-        
-        # Update package declarations
-        find src/main/java/com/blockchainagency/certification/ -name "*.java" -exec sed -i 's/package com.blockchaintclient;/package com.blockchainagency.certification;/g' {} \;
-        
+        echo "module.exports = { assets: ['./src/assets/fonts/', './src/assets/images/'] };" > react-native.config.js
         echo "Android configuration fixed"
         
     - name: Install dependencies
