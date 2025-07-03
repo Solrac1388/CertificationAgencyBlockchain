@@ -1,4 +1,4 @@
-package com.blockchaintclient;
+package com.blockchainagency.certification;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

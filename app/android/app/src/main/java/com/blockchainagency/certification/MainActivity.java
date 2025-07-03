@@ -1,4 +1,4 @@
-package com.blockchaintclient;
+package com.blockchainagency.certification;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;

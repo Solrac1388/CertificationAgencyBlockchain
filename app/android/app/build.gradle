@@ -11,9 +11,9 @@ android {
 
     compileSdkVersion rootProject.ext.compileSdkVersion
 
-    namespace "com.blockchaintclient"
+    namespace "com.blockchainagency.certification"
     defaultConfig {
-        applicationId "com.blockchaintclient"
+        applicationId "com.blockchainagency.certification"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
