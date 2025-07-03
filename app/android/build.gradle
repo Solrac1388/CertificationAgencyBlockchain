@@ -1,4 +1,9 @@
 buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://www.jitpack.io" }
+    }
     ext {
         buildToolsVersion = "33.0.0"
         minSdkVersion = 21
