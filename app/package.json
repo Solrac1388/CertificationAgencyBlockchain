@@ -1,34 +1,23 @@
 {
-  "name": "BlockchainClient",
+  "name": "blockchain-certification",
   "version": "1.0.0",
-  "private": true,
+  "displayName": "CAB",
+  "description": "Decentralized identity certification using blockchain technology",
+  "author": "Carlos Lafuente Sanz <carlos.lafuente.sanz.es@gmail.com>",
+  "homepage": "https://github.com/Solrac1388/CertificationAgencyBlockchain",
+  "keywords": [
+    "blockchain",
+    "certification",
+    "identity",
+    "react-native"
+  ],
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint ."
-    async verifyDocumentSignature(publicKey, documentHash, signature) {
-    try {
-      // For a real implementation, you would:
-      // 1. Parse the public key from PEM format
-      // 2. Verify the signature using RSA-PSS or similar
-      // For now, we'll do a simplified verification
-      
-      // Check if signature format is valid
-      if (!signature || signature.length < 64) {
-        return false;
-      }
-      
-      // In a real implementation, you would use RSA.verify
-      // This is a placeholder that checks signature structure
-      return true; // Placeholder - implement actual RSA verification
-    } catch (error) {
-      console.error('Signature verification error:', error);
-      return false;
-    }
-  }
-},
+  },
   "dependencies": {
     "react": "18.2.0",
     "react-native": "0.72.7",
