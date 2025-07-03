@@ -43,7 +43,7 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
-        cache-dependency-path: 'app/package-lock.json'  # Especifica la ruta del archivo de lock
+        cache-dependency-path: 'app/package-lock.json'
         
     - name: Setup Java
       uses: actions/setup-java@v4
@@ -90,35 +90,11 @@ jobs:
         echo "Processed $NODES_COUNT nodes:"
         echo "$NODES_RAW" | tr ',' '\n' | sed 's/^/  - /'
         
-    - name: Fix React Native config
-      run: |
-        cd app
-        echo "Fixing configuration for Android build..."
-        echo "module.exports = { assets: ['./src/assets/fonts/', './src/assets/images/'] };" > react-native.config.js
-        echo "Android configuration fixed"
-        
     - name: Install dependencies
       run: |
         cd app
         npm install
         echo "Dependencies installed"
-        
-    - name: Verify React Native setup
-      run: |
-        cd app
-        echo "Verifying React Native dependencies..."
-        
-        # Check if gradle plugin exists
-        if [ ! -d "node_modules/react-native-gradle-plugin" ]; then
-          echo "Missing react-native-gradle-plugin, installing React Native CLI..."
-          npm install @react-native-community/cli@latest
-        fi
-        
-        # Fix settings.gradle
-        cd android
-        grep -q "react-native-gradle-plugin" settings.gradle || echo "includeBuild('../node_modules/react-native-gradle-plugin')" >> settings.gradle
-        
-        echo "React Native setup verified"
         
     - name: Configure Persona credentials
       run: |
@@ -190,8 +166,10 @@ jobs:
       run: |
         cd app/android
         
-        echo "Starting APK build..."
+        # Remove problematic plugin reference
+        sed -i '/react-native-gradle-plugin/d' settings.gradle
         
+        echo "Starting APK build..."
         gradle assembleRelease \
           -Pandroid.injected.signing.store.file=app/blockchain-release-key.keystore \
           -Pandroid.injected.signing.store.password="$ANDROID_STORE_PASSWORD" \
@@ -199,7 +177,7 @@ jobs:
           -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD" \
           --no-daemon
           
-        APK_PATH="android/app/build/outputs/apk/release/app-release.apk"
+        APK_PATH="app/build/outputs/apk/release/app-release.apk"
         if [[ ! -f "$APK_PATH" ]]; then
           echo "ERROR: APK was not generated"
           exit 1
