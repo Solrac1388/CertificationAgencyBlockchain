@@ -1,4 +1,16 @@
 rootProject.name = 'CertificationAgencyBlockchain'
-apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesSettingsGradle(settings)
+
+pluginManagement {
+    includeBuild('../node_modules/@react-native/gradle-plugin')
+}
+
+plugins {
+    id("com.facebook.react.settings")
+}
+
+includeBuild('../node_modules/@react-native/gradle-plugin')
+
+apply from: file("../node_modules/@react-native-community/cli-platform-android/native_modules.gradle")
+applyNativeModulesSettingsGradle(settings)
+
 include ':app'
-includeBuild('../node_modules/react-native-gradle-plugin')

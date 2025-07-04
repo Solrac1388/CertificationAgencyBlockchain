@@ -49,7 +49,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '11'
         
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
@@ -161,20 +161,35 @@ jobs:
         
         echo "Version updated to ${{ steps.version.outputs.version-name }}"
         
+    - name: Pre-bundle JavaScript
+      run: |
+        cd app
+        echo "Pre-bundling JavaScript..."
+        
+        mkdir -p android/app/src/main/assets
+        npx react-native bundle \
+          --platform android \
+          --dev false \
+          --entry-file index.js \
+          --bundle-output android/app/src/main/assets/index.android.bundle \
+          --assets-dest android/app/src/main/res \
+          --reset-cache
+          
+        echo "JavaScript bundle created successfully"
+        
     - name: Build release APK
       id: build
       run: |
         cd app/android
         
-        # Remove problematic plugin reference
-        sed -i '/react-native-gradle-plugin/d' settings.gradle
-        
         echo "Starting APK build..."
-        gradle assembleRelease \
+        ./gradlew clean
+        ./gradlew assembleRelease \
           -Pandroid.injected.signing.store.file=app/blockchain-release-key.keystore \
           -Pandroid.injected.signing.store.password="$ANDROID_STORE_PASSWORD" \
           -Pandroid.injected.signing.key.alias="$ANDROID_KEY_ALIAS" \
           -Pandroid.injected.signing.key.password="$ANDROID_KEY_PASSWORD" \
+          -x bundleReleaseJsAndAssets \
           --no-daemon
           
         APK_PATH="app/build/outputs/apk/release/app-release.apk"
