@@ -53,7 +53,7 @@ export class BlockchainClient {
     return this.nodeDiscovery.getCascadeStats();
   }
 
-  async sendVerification(publicKey, inquiryId, signature) {
+  async sendVerification(publicKey, name, surname, inquiryId, signature) {
     // Execute cascade discovery if needed (before important operations)
     const stats = this.nodeDiscovery.getCascadeStats();
     if (Date.now() - stats.lastCascade > 300000) { // 5 minutes
@@ -69,9 +69,14 @@ export class BlockchainClient {
 
     console.log(`Sending verification to ${nodes.length} nodes`);
 
+    const datetime = new Date().toISOString();
+    
     const payload = {
       public_key: publicKey,
+      name: name,
+      surname: surname,
       inquiry_id: inquiryId,
+      datetime: datetime,
       signature: Buffer.from(signature).toString('base64')
     };
 
@@ -104,106 +109,112 @@ export class BlockchainClient {
   async sendToNode(nodeAddress, message) {
     try {
       const url = nodeAddress.includes('://') 
-        ? nodeAddress 
-        : `http://${nodeAddress}/api`;
-
+        ? `${nodeAddress}/api/certifications` 
+        : `http://${nodeAddress}/api/certifications`;
+      
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
-
+      
+      const messageData = JSON.parse(message);
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: message,
+        body: JSON.stringify(messageData.payload),
         signal: controller.signal,
       });
-
+      
       clearTimeout(timeoutId);
-
-      if (response.ok) {
-        const data = await response.text();
-        return this.protocol.parseNodeMessage(data);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
       }
       
-      return null;
+      return await response.json();
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.error(`Timeout sending to node ${nodeAddress}`);
-      } else {
-        console.error(`Failed to send to node ${nodeAddress}:`, error);
-      }
-      return null;
+      console.error(`Failed to send to ${nodeAddress}:`, error);
+      throw error;
     }
   }
 
-  async queryIdentity(publicKey) {
+  async queryByPublicKey(publicKey) {
     const nodes = this.nodeDiscovery.getAllNodes();
-    
-    if (nodes.length === 0) {
-      return null;
-    }
-
-    const payload = { public_key: publicKey };
-    const message = this.protocol.createNodeMessage('query_identity', payload);
-    
-    // Query nodes in parallel with limited concurrency
-    const concurrency = 5;
-    
-    for (let i = 0; i < nodes.length; i += concurrency) {
-      const batch = nodes.slice(i, i + concurrency);
-      const batchPromises = batch.map(node => this.sendToNode(node, message));
-      
-      try {
-        const responses = await Promise.all(batchPromises);
-        
-        for (const response of responses) {
-          if (response && response.payload) {
-            return response.payload;
-          }
-        }
-      } catch (error) {
-        continue;
-      }
-    }
-
-    return null;
-  }
-
-  async queryPublicKey(identity) {
-    const nodes = this.nodeDiscovery.getAllNodes();
-    
-    if (nodes.length === 0) {
-      return null;
-    }
-
-    const payload = { identity: identity };
-    const message = this.protocol.createNodeMessage('query_public_key', payload);
     
     for (const node of nodes) {
       try {
-        const response = await this.sendToNode(node, message);
-        if (response && response.payload) {
-          return response.payload.public_key;
+        const url = node.includes('://') 
+          ? `${node}/api/v1/certifications/by-public-key/${encodeURIComponent(publicKey)}`
+          : `http://${node}/api/v1/certifications/by-public-key/${encodeURIComponent(publicKey)}`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            identity: `${data.name} ${data.surname}`,
+            publicKey: data.public_key,
+            inquiryId: data.inquiry_id,
+            datetime: data.datetime,
+            verified: true,
+          };
         }
       } catch (error) {
-        continue;
+        // Try next node
       }
     }
-
+    
     return null;
   }
 
-  async getConnectedNodesCount() {
-    return this.nodeDiscovery.getAllNodes().length;
+  async queryByIdentity(name, surname) {
+    const nodes = this.nodeDiscovery.getAllNodes();
+    
+    for (const node of nodes) {
+      try {
+        const url = node.includes('://') 
+          ? `${node}/api/v1/certifications/by-identity?name=${encodeURIComponent(name)}&surname=${encodeURIComponent(surname)}`
+          : `http://${node}/api/v1/certifications/by-identity?name=${encodeURIComponent(name)}&surname=${encodeURIComponent(surname)}`;
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return {
+            identity: `${data.name} ${data.surname}`,
+            publicKey: data.public_key,
+            inquiryId: data.inquiry_id,
+            datetime: data.datetime,
+            verified: true,
+          };
+        }
+      } catch (error) {
+        // Try next node
+      }
+    }
+    
+    return null;
+  }
+
+  async queryIdentity(publicKey) {
+    return this.queryByPublicKey(publicKey);
   }
 
   getNodeStats() {
     return this.nodeDiscovery.getCascadeStats();
-  }
-
-  async stop() {
-    this.isRunning = false;
-    await this.nodeDiscovery.stop();
   }
 }

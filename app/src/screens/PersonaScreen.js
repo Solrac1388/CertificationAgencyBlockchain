@@ -21,6 +21,7 @@ import { SecureStorage } from '../services/SecureStorage';
 
 const PersonaScreen = ({ navigation }) => {
   const [inquiryId, setInquiryId] = useState(null);
+  const [verificationFields, setVerificationFields] = useState(null);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [certificateDialogVisible, setCertificateDialogVisible] = useState(false);
@@ -37,6 +38,7 @@ const PersonaScreen = ({ navigation }) => {
 
   const onVerificationComplete = async (inquiryId, status, fields) => {
     setInquiryId(inquiryId);
+    setVerificationFields(fields);
     showSnackbar(`Verification completed: ${status}`);
     
     // Load certificates for selection
@@ -98,8 +100,18 @@ const PersonaScreen = ({ navigation }) => {
         password
       );
 
-      // Create signature
-      const message = `verification:${inquiryId}:${selectedCertData.publicKey}`;
+      // Extract name and surname from Persona fields
+      const name = verificationFields?.name_first || verificationFields?.nameFirst || '';
+      const surname = verificationFields?.name_last || verificationFields?.nameLast || '';
+      
+      if (!name || !surname) {
+        showSnackbar('Error: Could not extract name from verification');
+        return;
+      }
+
+      // Create message with all required fields
+      const datetime = new Date().toISOString();
+      const message = `${selectedCertData.publicKey}|${name}|${surname}|${inquiryId}|${Math.floor(new Date(datetime).getTime() / 1000)}`;
       const signature = await cryptoService.signMessage(privateKey, message);
 
       // Send to blockchain network
@@ -114,6 +126,8 @@ const PersonaScreen = ({ navigation }) => {
       
       const results = await client.sendVerification(
         selectedCertData.publicKey,
+        name,
+        surname,
         inquiryId,
         signature
       );
