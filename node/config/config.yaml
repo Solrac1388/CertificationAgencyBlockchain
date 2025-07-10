@@ -1,0 +1,46 @@
+# Certification Blockchain Node Configuration
+
+network:
+  port: 8333
+  host: "0.0.0.0"
+  network_id: "CertificationBlockchain"
+  max_peers: 50
+  discovery_port: 45678
+  flag: "CERTIFICATION-BLOCKCHAIN-CLS"
+  timeout: 30s
+  trusted_nodes:
+    - "node1.certblockchain.com:8333"
+    - "node2.certblockchain.com:8333"
+    - "node3.certblockchain.com:8333"
+
+blockchain:
+  genesis_hash: ""
+  block_time: 10m
+  max_block_size: 1048576  # 1MB
+  cert_expiry: 8760h       # 1 year
+  magic_value: 0xD9B4BEF9
+
+storage:
+  data_dir: "./data"
+  cache_size: 100
+  max_db_size: 10737418240  # 10GB
+
+api:
+  persona_base_url: "https://api.withpersona.com/api/v1"
+  persona_api_key: "${PERSONA_API_KEY}"  # Set via environment variable
+  rate_limit: 100
+  timeout: 30s
+
+mining:
+  enabled: true
+  threads: 4
+  initial_difficulty: 16
+  difficulty_adjust: 2016
+  target_block_time: 10m
+  max_trans_per_block: 1000
+
+security:
+  require_signature: true
+  max_inquiry_age: 24h
+  enable_rate_limit: true
+  max_requests_per_min: 60

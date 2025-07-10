@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  certnode1:
+    build: .
+    container_name: certnode1
+    environment:
+      - PERSONA_API_KEY=${PERSONA_API_KEY}
+      - LOG_LEVEL=info
+    ports:
+      - "8333:8333"
+      - "45678:45678/udp"
+    volumes:
+      - certnode1-data:/app/data
+      - ./config/node1.yaml:/app/config/config.yaml
+    networks:
+      - certnet
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8333/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  certnode2:
+    build: .
+    container_name: certnode2
+    environment:
+      - PERSONA_API_KEY=${PERSONA_API_KEY}
+      - LOG_LEVEL=info
+    ports:
+      - "8334:8333"
+      - "45679:45678/udp"
+    volumes:
+      - certnode2-data:/app/data
+      - ./config/node2.yaml:/app/config/config.yaml
+    networks:
+      - certnet
+    restart: unless-stopped
+    depends_on:
+      - certnode1
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8333/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  certnode3:
+    build: .
+    container_name: certnode3
+    environment:
+      - PERSONA_API_KEY=${PERSONA_API_KEY}
+      - LOG_LEVEL=info
+    ports:
+      - "8335:8333"
+      - "45680:45678/udp"
+    volumes:
+      - certnode3-data:/app/data
+      - ./config/node3.yaml:/app/config/config.yaml
+    networks:
+      - certnet
+    restart: unless-stopped
+    depends_on:
+      - certnode1
+      - certnode2
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8333/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  certnode1-data:
+  certnode2-data:
+  certnode3-data:
+
+networks:
+  certnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
