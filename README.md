@@ -57,22 +57,6 @@ Este proyecto surge como respuesta a las limitaciones de los sistemas de certifi
 6. **Minado**: Solicitudes válidas se incluyen en nuevo bloque mediante PoW
 7. **Propagación**: Bloque se distribuye y sincroniza entre todos los nodos
 
-## Instalación y Uso
-
-### Configuración de Nodo
-```bash
-# Instalación automática de dependencias
-python node.py --port=5000
-
-# Con Docker
-docker run -p 8333:8333 -p 45678:45678/udp certification-node
-```
-
-### Aplicación Móvil
-- Disponible para Android 13+
-- Instalación mediante archivo APK desde releases
-- Desarrollada en React Native para máxima compatibilidad
-
 ## Impacto y Beneficios
 
 ### Ventajas Sociales

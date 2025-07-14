@@ -57,22 +57,6 @@ This project emerges as a response to the limitations of current centralized dig
 6. **Mining**: Valid requests included in new block through PoW
 7. **Propagation**: Block distributed and synchronized across all nodes
 
-## Installation and Usage
-
-### Node Setup
-```bash
-# Automatic dependency installation
-python node.py --port=5000
-
-# With Docker
-docker run -p 8333:8333 -p 45678:45678/udp certification-node
-```
-
-### Mobile Application
-- Available for Android 13+
-- Installation via APK file from releases
-- Developed in React Native for maximum compatibility
-
 ## Impact and Benefits
 
 ### Social Advantages
