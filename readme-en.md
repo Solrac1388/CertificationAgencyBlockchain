@@ -4,114 +4,117 @@
 
 ## Description
 
-CertificationAgencyBlockchain is a decentralized system for certifying the identity of public key owners using blockchain technology with proof of work. The system uses the Persona Verification API to verify users' identities and associate them with their public keys, thus creating a reliable digital identity certification system.
+CertificationAgencyBlockchain is a decentralized system for certifying the identity of public key owners using blockchain technology with proof of work. The system uses the Persona Verification API to verify users' identities and associate them with their public keys, creating a decentralized alternative to traditional digital certification authorities.
+
+## Motivation
+
+This project emerges as a response to the limitations of current centralized digital certification systems. Through blockchain technology, it seeks to distribute certification sovereignty among multiple nodes, eliminating dependence on a single authority and providing greater transparency and resistance to censorship.
 
 ## System Components
 
-### Mobile App
-- User interface for Persona Verification
-- RSA key generator
-- Local storage of certificates on the device
-- Sending encrypted key files via email
-- Communication with blockchain nodes
-- Certificate management (loading from device and local deletion)
+### Mobile App (React Native)
+- Integrated Persona Verification user interface
+- RSA key generator with password encryption
+- Secure local certificate storage
+- Automatic cascade node discovery
+- Blockchain network communication via UDP/TCP
+- Complete certificate lifecycle management
 
-### Blockchain Nodes
-- Processing certification requests
+### Blockchain Nodes (Go)
+- Processing and validation of certification requests
 - Identity verification through Persona API
-- Blockchain maintenance through proof of work
-- Key-value database for quick queries
-- Identity and public key query service
-
-## Workflow
-
-1. **User Verification**: 
-   - The user accesses the mobile app
-   - Completes the verification process through Persona interface
-   - An inquiry code (session code) is generated
-
-2. **Key Generation**:
-   - The app generates an RSA key pair
-   - The key pair is encrypted with a password provided by the user
-   - The keys are stored locally on the device
-   - The encrypted file is sent to the user's email
-
-3. **Certification Request**:
-   - The app sends to nodes: public key (id), inquiry code, and RSA signature
-   - Nodes verify the request by querying the Persona API
-   - Valid requests are added to a pool of pending certifications
-
-4. **Block Mining**:
-   - Nodes participate in proof of work to create new blocks
-   - Blocks contain validated certifications
-   - The chain is updated and distributed among all nodes
-
-5. **Queries**:
-   - Users can query the identity associated with a public key
-   - Users can query the public key associated with an identity
-
-6. **Certificate Management**:
-   - Users can manage certificates stored locally on the device
-   - It's possible to import existing certificates from the device storage
-   - Certificates can be deleted from the application at any time
-   - To add a new certificate to the blockchain network, a new identity verification is required for each certificate
+- Proof of work implementation with dynamic difficulty adjustment
+- Hybrid database: JSON files for blockchain + Badger DB for indexes
+- REST API for client application communication
+- Peer-to-peer synchronization with fault tolerance
 
 ## Technical Architecture
 
 ### Blockchain Structure
-- Blocks linked through hashes
-- Proof of work for block validation with difficulty adjustment
-- Distributed consensus mechanism
+- Blocks linked through SHA-256 hashes
+- Proof of work (PoW) with 10-minute target block time
+- Merkle trees to ensure transaction integrity
+- Automatic difficulty adjustment every 2016 blocks
 
-### Integration with Persona API
-- Identity verification through REST API
-- Secure authentication
-- Verification status query
+### Persona API Integration
+- Biometric and document identity verification
+- Unique inquiry codes as cryptographic proof
+- Validation of coherence between verified data and requests
 
-### Security
-- RSA encryption for digital signatures
-- Protection of private keys through password encryption
-- Cryptographic verification of chain integrity
+### Cryptographic Security
+- 2048-bit RSA keys for digital signatures
+- AES-256 encryption for private key protection
+- Exhaustive signature verification across all nodes
+- Replay attack prevention through unique inquiries
 
-## System Requirements
+## Certification Flow
 
-### Dependencies
-- Python 3.8+
-- Cryptography libraries
-- Internet connection to access the Persona API
-
-### Configuration
-- Node configuration and connection points
-- Difficulty parameters for proof of work
-- API credentials for Persona Verification
+1. **Identity Verification**: User completes biometric verification with Persona API
+2. **Key Generation**: App creates RSA pair and encrypts keys with user password
+3. **Signed Request**: Request generated with RSA signature of all fields
+4. **Network Discovery**: App locates available nodes via UDP broadcast
+5. **Validation**: Nodes verify signature, query Persona API, and validate uniqueness
+6. **Mining**: Valid requests included in new block through PoW
+7. **Propagation**: Block distributed and synchronized across all nodes
 
 ## Installation and Usage
 
-### Node Configuration
-```
+### Node Setup
+```bash
+# Automatic dependency installation
 python node.py --port=5000
+
+# With Docker
+docker run -p 8333:8333 -p 45678:45678/udp certification-node
 ```
 
-The script will automatically install all necessary dependencies on its first execution.
+### Mobile Application
+- Available for Android 13+
+- Installation via APK file from releases
+- Developed in React Native for maximum compatibility
 
-### Mobile App Execution
-The mobile app is available for Android and can be downloaded from this repository.
+## Impact and Benefits
+
+### Social Advantages
+- **Democratization**: Universal access without geographical barriers
+- **Financial Inclusion**: Verifiable identity for marginalized populations
+- **Portability**: Digital certificates independent of physical documents
+- **Transparency**: Public verification of authenticity
+
+### Environmental Benefits
+- Significant reduction in paper consumption
+- Elimination of travel for in-person procedures
+- Dematerialization of administrative processes
+
+## System Requirements
+
+### Nodes
+- Go 1.19+
+- Docker (optional)
+- Stable Internet connection
+- Minimum 2GB RAM, 10GB storage
+
+### Mobile Application
+- Android 13+
+- 100MB free space
+- Camera for biometric verification
 
 ## Future Development
-- Integration with other identity verification systems
-- Development of web interfaces for public queries
+
+- Integration with additional verification systems
+- Web interfaces for public queries
+- More energy-efficient consensus mechanisms
+- Improved horizontal scalability
 
 ## License
 
 This work is licensed under a Creative Commons "Attribution-NonCommercial-ShareAlike 4.0 International" License (CC BY-NC-SA 4.0).
 
-This means you can:
-- Share: copy and redistribute the material in any medium or format
-- Adapt: remix, transform, and build upon the material
+For more information: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
-Under the following terms:
-- Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made.
-- NonCommercial: You may not use the material for commercial purposes.
-- ShareAlike: If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+---
 
-For more information, visit: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+**Final Degree Project** - Universidad Politécnica de Madrid  
+**Author**: Carlos Lafuente Sanz  
+**Director**: Borja Bordel Sánchez  
+**Date**: July 14, 2025

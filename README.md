@@ -4,114 +4,117 @@
 
 ## Descripción
 
-CertificationAgencyBlockchain es un sistema descentralizado para certificar la identidad de los propietarios de claves públicas usando tecnología blockchain con prueba de trabajo. El sistema utiliza la API de Persona Verification para verificar la identidad de los usuarios y asociarla a sus claves públicas, creando así un sistema confiable de certificación de identidades digitales.
+CertificationAgencyBlockchain es un sistema descentralizado para certificar la identidad de los propietarios de claves públicas usando tecnología blockchain con prueba de trabajo. El sistema utiliza la API de Persona Verification para verificar la identidad de los usuarios y asociarla a sus claves públicas, creando una alternativa descentralizada a las agencias de certificación tradicionales.
+
+## Motivación
+
+Este proyecto surge como respuesta a las limitaciones de los sistemas de certificación digital centralizados actuales. Mediante tecnología blockchain, busca distribuir la soberanía de la certificación entre múltiples nodos, eliminando la dependencia de una única autoridad y proporcionando mayor transparencia y resistencia a la censura.
 
 ## Componentes del Sistema
 
-### App Móvil
-- Interfaz de usuario para Persona Verification
-- Generador de claves RSA
-- Almacenamiento local de certificados en el dispositivo
-- Envío de archivos de claves cifrados por email
-- Comunicación con los nodos de la blockchain
-- Gestión de certificados (carga desde el dispositivo y eliminación local)
+### App Móvil (React Native)
+- Interfaz de usuario para Persona Verification integrada
+- Generador de claves RSA con cifrado por contraseña
+- Almacenamiento local seguro de certificados
+- Descubrimiento automático de nodos en cascada
+- Comunicación con la red blockchain mediante UDP/TCP
+- Gestión completa del ciclo de vida de certificados
 
-### Nodos Blockchain
-- Procesamiento de solicitudes de certificación
+### Nodos Blockchain (Go)
+- Procesamiento y validación de solicitudes de certificación
 - Verificación de identidad mediante Persona API
-- Mantenimiento de la blockchain mediante prueba de trabajo
-- Base de datos clave-valor para consultas rápidas
-- Servicio de consulta de identidades y claves públicas
-
-## Flujo de Trabajo
-
-1. **Verificación de Usuario**: 
-   - El usuario accede a la app móvil
-   - Completa el proceso de verificación mediante la interfaz de Persona
-   - Se genera un código de inquiry (código de sesión)
-
-2. **Generación de Claves**:
-   - La app genera un par de claves RSA
-   - El par de claves se cifra con una contraseña proporcionada por el usuario
-   - Las claves se almacenan localmente en el dispositivo
-   - El archivo cifrado se envía al email del usuario
-
-3. **Solicitud de Certificación**:
-   - La app envía a los nodos: clave pública (id), código de inquiry, y firma RSA
-   - Los nodos verifican la solicitud consultando la API de Persona
-   - Las solicitudes válidas se añaden a un pool de certificaciones pendientes
-
-4. **Minería de Bloques**:
-   - Los nodos participan en la prueba de trabajo para crear nuevos bloques
-   - Los bloques contienen las certificaciones validadas
-   - La cadena se actualiza y distribuye entre todos los nodos
-
-5. **Consultas**:
-   - Los usuarios pueden consultar la identidad asociada a una clave pública
-   - Los usuarios pueden consultar la clave pública asociada a una identidad
-
-6. **Gestión de Certificados**:
-   - Los usuarios pueden gestionar certificados almacenados localmente en el dispositivo
-   - Es posible importar certificados existentes desde el almacenamiento del dispositivo
-   - Los certificados pueden ser eliminados de la aplicación en cualquier momento
-   - Para añadir un nuevo certificado a la red blockchain, se requiere realizar una nueva verificación de identidad para cada certificado
+- Implementación de prueba de trabajo con ajuste dinámico de dificultad
+- Base de datos híbrida: archivos JSON para blockchain + Badger DB para índices
+- API REST para comunicación con aplicaciones cliente
+- Sincronización peer-to-peer con tolerancia a fallos
 
 ## Arquitectura Técnica
 
 ### Estructura de la Blockchain
-- Bloques enlazados mediante hashes
-- Prueba de trabajo para la validación de bloques con ajuste de dificultad
-- Mecanismo de consenso distribuido
+- Bloques enlazados mediante hashes SHA-256
+- Prueba de trabajo (PoW) con dificultad objetivo de 10 minutos por bloque
+- Árboles de Merkle para garantizar integridad de transacciones
+- Ajuste automático de dificultad cada 2016 bloques
 
 ### Integración con Persona API
-- Verificación de identidad mediante API REST
-- Autenticación segura
-- Consulta de estado de verificaciones
+- Verificación de identidad biométrica y documental
+- Códigos de inquiry únicos como prueba criptográfica
+- Validación de coherencia entre datos verificados y solicitudes
 
-### Seguridad
-- Cifrado RSA para firmas digitales
-- Protección de claves privadas mediante cifrado con contraseña
-- Verificación criptográfica de la integridad de la cadena
+### Seguridad Criptográfica
+- Claves RSA de 2048 bits para firmas digitales
+- Cifrado AES-256 para protección de claves privadas
+- Verificación exhaustiva de firmas en todos los nodos
+- Prevención de ataques de replay mediante inquiry únicos
 
-## Requisitos del Sistema
+## Flujo de Certificación
 
-### Dependencias
-- Python 3.8+
-- Bibliotecas de criptografía
-- Conexión a Internet para acceder a la API de Persona
-
-### Configuración
-- Configuración de nodos y puntos de conexión
-- Parámetros de dificultad para la prueba de trabajo
-- Credenciales de API para Persona Verification
+1. **Verificación de Identidad**: Usuario completa verificación biométrica con Persona API
+2. **Generación de Claves**: App crea par RSA y cifra claves con contraseña del usuario
+3. **Solicitud Firmada**: Se genera solicitud con firma RSA de todos los campos
+4. **Descubrimiento de Red**: App localiza nodos disponibles mediante broadcast UDP
+5. **Validación**: Nodos verifican firma, consultan Persona API y validan unicidad
+6. **Minado**: Solicitudes válidas se incluyen en nuevo bloque mediante PoW
+7. **Propagación**: Bloque se distribuye y sincroniza entre todos los nodos
 
 ## Instalación y Uso
 
 ### Configuración de Nodo
-```
+```bash
+# Instalación automática de dependencias
 python node.py --port=5000
+
+# Con Docker
+docker run -p 8333:8333 -p 45678:45678/udp certification-node
 ```
 
-El script instalará automáticamente todas las dependencias necesarias en su primera ejecución.
+### Aplicación Móvil
+- Disponible para Android 13+
+- Instalación mediante archivo APK desde releases
+- Desarrollada en React Native para máxima compatibilidad
 
-### Ejecución de la App Móvil
-La aplicación móvil está disponible para Android y puede descargarse desde este repositorio.
+## Impacto y Beneficios
+
+### Ventajas Sociales
+- **Democratización**: Acceso universal sin barreras geográficas
+- **Inclusión Financiera**: Identidad verificable para poblaciones marginadas
+- **Portabilidad**: Certificados digitales independientes de documentos físicos
+- **Transparencia**: Verificación pública de autenticidad
+
+### Beneficios Medioambientales
+- Reducción significativa del consumo de papel
+- Eliminación de desplazamientos para trámites presenciales
+- Desmaterialización de procesos administrativos
+
+## Requisitos del Sistema
+
+### Nodos
+- Go 1.19+
+- Docker (opcional)
+- Conexión a Internet estable
+- Mínimo 2GB RAM, 10GB almacenamiento
+
+### Aplicación Móvil
+- Android 13+ 
+- 100MB espacio libre
+- Cámara para verificación biométrica
 
 ## Desarrollo Futuro
-- Integración con otros sistemas de verificación de identidad
-- Desarrollo de interfaces web para consultas públicas
+
+- Integración con sistemas de verificación adicionales
+- Interfaces web para consultas públicas
+- Mecanismos de consenso más eficientes energéticamente
+- Escalabilidad horizontal mejorada
 
 ## Licencia
 
 Esta obra está bajo una licencia Creative Commons «Atribución-NoComercial-CompartirIgual 4.0 Internacional» (CC BY-NC-SA 4.0).
 
-Esto significa que puedes:
-- Compartir: copiar y redistribuir el material en cualquier medio o formato
-- Adaptar: remezclar, transformar y construir a partir del material
+Para más información: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es)
 
-Bajo los siguientes términos:
-- Atribución: Debes dar crédito de manera adecuada, proporcionar un enlace a la licencia e indicar si se han realizado cambios.
-- NoComercial: No puedes utilizar el material con fines comerciales.
-- CompartirIgual: Si remezclas, transformas o creas a partir del material, debes distribuir tu contribución bajo la misma licencia que el original.
+---
 
-Para más información, visita: [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.es)
+**Trabajo Fin de Grado** - Universidad Politécnica de Madrid  
+**Autor**: Carlos Lafuente Sanz  
+**Director**: Borja Bordel Sánchez  
+**Fecha**: 14 de julio de 2025
